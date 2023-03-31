@@ -12,4 +12,3 @@ function removeImage(pathPhoto) {
 }
 
 export default removeImage
-
