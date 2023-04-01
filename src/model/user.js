@@ -17,6 +17,10 @@ const user_scheme = new mongoose.Schema({
         type: Array,
         default: []
     },
+    follower: {
+        type: Array,
+        default: []
+    },
     subscription: {
         type: Array,
         default: []
