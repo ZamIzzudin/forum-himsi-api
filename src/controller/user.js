@@ -45,6 +45,7 @@ const create_user = async (req, res, next) => {
             res.status(201).json({
                 status: 201,
                 message: 'success',
+                id: user._id,
                 username: new_user.username,
                 role,
                 access_token,
@@ -159,6 +160,7 @@ const login = async (req, res) => {
             res.status(200).json({
                 status: 200,
                 message: 'success',
+                id: user._id,
                 username: user.username,
                 role: user.role,
                 access_token
@@ -171,35 +173,6 @@ const login = async (req, res) => {
             })
         }
 
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).json({
-            status: 500,
-            message: 'failed',
-            info: 'server error'
-        })
-    }
-}
-
-const get_user_list = async (req, res) => {
-    try {
-        //get all user data
-        const user = await User.find({ is_banned: false }) || []
-
-        //when data user is not found
-        if (!user) {
-            return res.status(400).json({
-                status: 400,
-                message: 'failed',
-                info: 'cannot get user'
-            })
-        } else {
-            res.status(200).json({
-                status: 200,
-                message: 'success',
-                data: user ? user : []
-            });
-        }
     } catch (err) {
         console.log(err.message);
         res.status(500).json({
@@ -361,7 +334,6 @@ const controller = {
     create_user,
     create_verified,
     login,
-    get_user_list,
     refresh_token,
     banned_user,
     unbanned_user,

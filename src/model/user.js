@@ -25,10 +25,6 @@ const user_scheme = new mongoose.Schema({
         type: Array,
         default: []
     },
-    post: {
-        type: Array,
-        default: []
-    },
     is_banned: {
         type: Boolean,
         default: false

@@ -1,6 +1,7 @@
 import express from "express"
 import post from "./post.js"
 import user from "./user.js"
+import profile from "./profile.js"
 
 const router = express.Router()
 
@@ -14,6 +15,7 @@ router.get('/', (req, res) => {
 
 router.use('/', post)
 router.use('/', user)
+router.use('/', profile)
 
 router.get('*', (req, res) => {
     res.send({

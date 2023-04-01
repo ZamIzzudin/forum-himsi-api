@@ -6,7 +6,6 @@ const user = express.Router()
 
 // GET
 user.get('/auth/refresh', controller.refresh_token)
-user.get('/auth/users', controller.get_user_list) // sementara nanti pindah ke module profile
 
 // POST
 user.post('/auth/login', controller.login)
