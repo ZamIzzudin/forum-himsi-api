@@ -5,6 +5,10 @@ const user_scheme = new mongoose.Schema({
     display_name: String,
     email: String,
     password: String,
+    is_hide: {
+        type: Boolean,
+        default: false
+    },
     description: {
         type: String,
         default: ""
@@ -35,8 +39,14 @@ const user_scheme = new mongoose.Schema({
         default: 'Common'
     },
     profile_picture: {
-        public_id: String,
-        url: String
+        public_id: {
+            type: String,
+            default: "none"
+        },
+        url: {
+            type: String,
+            default: "none"
+        },
     },
     created_at: {
         type: Date,

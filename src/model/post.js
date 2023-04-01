@@ -1,14 +1,23 @@
 import mongoose from "mongoose";
 
 const post_schema = new mongoose.Schema({
-    username: String,
-    display_name: String,
+    created_by: String,
     category: Array,
     head: String,
     body: String,
     attachments: Array,
-    is_hide: Boolean,
-    discusion: Array,
+    likes: {
+        type: Array,
+        default: []
+    },
+    is_hide: {
+        type: Boolean,
+        default: false
+    },
+    discusion: {
+        type: Array,
+        default: []
+    },
     created_at: {
         type: Date,
         default: new Date()
@@ -16,11 +25,7 @@ const post_schema = new mongoose.Schema({
     updated_at: {
         type: Date,
         default: new Date()
-    },
-    profile_picture: {
-        public_id: String,
-        url: String
-    },
+    }
 });
 
 const Post = mongoose.model("Post", post_schema);

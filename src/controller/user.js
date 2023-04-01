@@ -45,7 +45,7 @@ const create_user = async (req, res, next) => {
             res.status(201).json({
                 status: 201,
                 message: 'success',
-                id: user._id,
+                id: new_user._id,
                 username: new_user.username,
                 role,
                 access_token,
