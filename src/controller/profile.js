@@ -1,6 +1,6 @@
 import User from "../model/user.js"
 import cloudinary from '../libs/cloudinary.js';
-import { verify_refresh_token } from '../libs/jwt.js'
+import { verify_access_token } from '../libs/jwt.js'
 
 const get_user_list = async (req, res) => {
     try {
@@ -133,7 +133,7 @@ const change_profile_picture = async (req, res) => {
 
         const token = raw_token.split(' ')[1]
 
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 return res.status(401).json({
                     status: 401,

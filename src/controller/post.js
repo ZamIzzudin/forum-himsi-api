@@ -1,7 +1,8 @@
 import Post from "../model/post.js"
 import User from "../model/user.js"
-import cloudinary from '../libs/cloudinary.js';
-import { verify_refresh_token } from '../libs/jwt.js'
+import Discussion from '../model/discussion.js'
+import cloudinary from '../libs/cloudinary.js'
+import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
     const { category, head, body } = req.body
@@ -11,7 +12,7 @@ const create_post = async (req, res) => {
     const token = raw_token.split(' ')[1]
 
     try {
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 return res.status(401).json({
                     status: 401,
@@ -42,6 +43,7 @@ const create_post = async (req, res) => {
                 attachments: url_attachments,
                 created_by: decoded.id,
                 created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
             }
 
             const post = await Post.create(payload)
@@ -157,7 +159,7 @@ const get_detail_post = async (req, res) => {
             })
         }
 
-        const user = await User.findOne({ _id: post.created_by })
+        const post_creator = await User.findOne({ _id: post.created_by })
 
         res.status(200).json({
             status: 200,
@@ -170,9 +172,9 @@ const get_detail_post = async (req, res) => {
                 attachments: post.attachments,
                 likes: post.likes,
                 discussion: post.discussion,
-                username: user.username,
-                display_name: user.display_name,
-                profile_picture: user.profile_picture,
+                username: post_creator.username,
+                display_name: post_creator.display_name,
+                profile_picture: post_creator.profile_picture,
                 updated_at: post.updated_at
             }
         })
@@ -196,7 +198,7 @@ const edit_post = async (req, res) => {
     const query = { _id: id_post }
 
     try {
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 res.status(400).json({
                     status: 400,
@@ -287,7 +289,7 @@ const like_post = async (req, res) => {
     const token = raw_token.split(' ')[1]
 
     try {
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error || decoded.role.toLowerCase() === 'sysadmin') {
                 res.status(400).json({
                     status: 400,
@@ -342,7 +344,7 @@ const verified_takedown_post = async (req, res) => {
     const query = { _id: id_post }
 
     try {
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 res.status(400).json({
                     status: 400,
@@ -362,6 +364,7 @@ const verified_takedown_post = async (req, res) => {
 
             if (decoded.id === post.created_by) {
                 await Post.deleteOne(query)
+                await Discussion.deleteMany({ topic: id_post })
 
                 post.attachments.forEach(async (attachment) => {
                     await cloudinary.uploader.destroy(attachment.public_id)
@@ -397,7 +400,7 @@ const sysadmin_takedown_post = async (req, res) => {
     const query = { _id: id_post }
 
     try {
-        verify_refresh_token(token, async (error, decoded) => {
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 res.status(400).json({
                     status: 400,
@@ -417,6 +420,7 @@ const sysadmin_takedown_post = async (req, res) => {
 
             if (decoded.role.toLowerCase() === 'sysadmin') {
                 await Post.deleteOne(query)
+                await Discussion.deleteMany({ topic: id_post })
 
                 post.attachments.forEach(async (attachment) => {
                     await cloudinary.uploader.destroy(attachment.public_id)

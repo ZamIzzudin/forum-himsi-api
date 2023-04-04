@@ -14,7 +14,7 @@ const post_schema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    discusion: {
+    discussion: {
         type: Array,
         default: []
     },

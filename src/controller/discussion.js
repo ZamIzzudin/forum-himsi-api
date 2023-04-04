@@ -1,0 +1,360 @@
+import Discussion from '../model/discussion.js'
+import Post from "../model/post.js"
+import User from "../model/user.js"
+import { verify_access_token } from '../libs/jwt.js'
+
+const create_discussion = (req, res, next) => {
+    const { id_topic } = req.params
+    const { authorization: raw_token } = req.headers
+    const { body, layer = [] } = req.body
+
+    const token = raw_token.split(' ')[1]
+
+    try {
+        verify_access_token(token, async (error, decoded) => {
+            if (error && decoded.role.toLowerCase() === 'sysadmin') {
+                return res.status(403).json({
+                    status: 403,
+                    message: 'failed',
+                    info: 'unauthorized'
+                })
+            }
+
+            const payload = {
+                created_by: decoded.id,
+                topic: id_topic,
+                body,
+                layer,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            }
+
+            const discussion = await Discussion.create(payload)
+
+            // layer --> [id discussion, ...] --> flagginf position discussion
+            if (layer.length > 0) {
+                const last_index = layer.length - 1
+                const parent_layer = await Discussion.findOne({ _id: layer[last_index] })
+
+                const exist_layer_discussion = parent_layer.discussion
+                const layers = parent_layer.layer
+
+                layers.push(discussion._id)
+                exist_layer_discussion.push(discussion._id)
+
+                await Discussion.updateOne({ _id: layer }, { discussion: exist_layer_discussion, layer: layers })
+            } else {
+                const post = await Post.findOne({ _id: id_topic })
+
+                const exist_discussion = post.discussion
+                exist_discussion.push(discussion._id)
+
+                await Post.updateOne({ _id: id_topic }, { discussion: exist_discussion })
+            }
+
+            return res.status(203).json({
+                status: 203,
+                message: 'successfully create discussion'
+            })
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const get_discussion_topic = async (req, res, next) => {
+    const { id_topic } = req.params
+
+    try {
+        const result = await Discussion.find({ topic: id_topic })
+
+        if (!result) {
+            return res.status(400).json({
+                status: 400,
+                message: 'failed',
+                info: "can't find discussion"
+            })
+        } else {
+            const discussions = []
+
+            result.forEach(discussion => {
+                const user = User.findOne({ _id: discussion.created_by })
+
+                discussions.push({
+                    body: discussion.body,
+                    topic: discussion.topic,
+                    layer: discussion.layer,
+                    updated_at: discussion.updated_at,
+                    discussion: discussion.discussion,
+                    username: user.username,
+                    display_name: user.display_name,
+                    profile_picture: user.profile_picture
+                })
+            })
+
+            return res.status(200).json({
+                status: 200,
+                message: 'success',
+                data: discussions
+            })
+        }
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const get_discussion_layer = (req, res, next) => {
+    const { id_layer } = req.params
+
+    try {
+        const result = Discussion.find({ layer: id_layer })
+
+        if (!result) {
+            return res.status(400).json({
+                status: 400,
+                message: 'failed',
+                info: "can't find discussion"
+            })
+        } else {
+            const discussions = []
+
+            result.forEach(discussion => {
+                const user = User.findOne({ _id: discussion.created_by })
+
+                discussions.push({
+                    body: discussion.body,
+                    topic: discussion.topic,
+                    layer: discussion.layer,
+                    updated_at: discussion.updated_at,
+                    discussion: discussion.discussion,
+                    username: user.username,
+                    display_name: user.display_name,
+                    profile_picture: user.profile_picture
+                })
+            })
+
+            return res.status(200).json({
+                status: 200,
+                message: 'success',
+                data: discussions
+            })
+        }
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const get_discussion_detail = (req, res, next) => {
+    const { id_layer } = req.params
+
+    try {
+        const discussion = Discussion.findOne({ _id: id_layer })
+
+        if (!discussion) {
+            return res.status(400).json({
+                status: 400,
+                message: 'failed',
+                info: "can't find discussion"
+            })
+        } else {
+            const user = User.findOne({ _id: discussion.created_by })
+
+            const payload = {
+                body: discussion.body,
+                topic: discussion.topic,
+                layer: discussion.layer,
+                updated_at: discussion.updated_at,
+                discussion: discussion.discussion,
+                username: user.username,
+                display_name: user.display_name,
+                profile_picture: user.profile_picture
+            }
+
+            return res.status(200).json({
+                status: 200,
+                message: 'success',
+                data: payload
+            })
+        }
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const user_edit_discussion = (req, res, next) => {
+    const { id_layer } = req.params
+    const { body } = req.body
+    const { authorization: raw_token } = req.headers
+
+    const token = raw_token.split(' ')[1]
+
+    try {
+        verify_access_token(token, async (error, decoded) => {
+            if (error) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "token not found"
+                })
+            }
+
+            const discussion = await Discussion.findOne(query)
+            if (!discussion) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "can't find discussion"
+                })
+            }
+
+            if (decoded.id === discussion.created_by) {
+                await Discussion.updateOne({ _id: id_layer }, { body: body })
+
+                res.status(200).json({
+                    status: 200,
+                    message: `Success Update Discussion ${id_layer}`
+                })
+            } else {
+                res.status(403).json({
+                    status: 403,
+                    message: 'failed',
+                    info: "you dont have previlage to do this action"
+                })
+            }
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const user_delete_discussion = (req, res, next) => {
+    const { id_layer } = req.params
+    const { authorization: raw_token } = req.headers
+
+    const token = raw_token.split(' ')[1]
+
+    try {
+        verify_access_token(token, async (error, decoded) => {
+            if (error) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "token not found"
+                })
+            }
+
+            const discussion = await Discussion.findOne(query)
+            if (!discussion) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "can't find discussion"
+                })
+            }
+
+            if (decoded.id === discussion.created_by) {
+                await Discussion.deleteOne({ _id: id_layer })
+                await Discussion.deleteMany({ layer: id_layer })
+
+                res.status(200).json({
+                    status: 200,
+                    message: `Success Delete Discussion ${id_layer}`
+                })
+            } else {
+                res.status(403).json({
+                    status: 403,
+                    message: 'failed',
+                    info: "you dont have previlage to do this action"
+                })
+            }
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const sysadmin_delete_discussion = (req, res, next) => {
+    const { id_layer } = req.params
+    const { authorization: raw_token } = req.headers
+
+    const token = raw_token.split(' ')[1]
+
+    try {
+        verify_access_token(token, async (error, decoded) => {
+            if (error) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "token not found"
+                })
+            }
+
+            const discussion = await Discussion.findOne(query)
+            if (!discussion) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "can't find discussion"
+                })
+            }
+
+            if (decoded.role.toLowerCase() === 'sysadmin') {
+                await Discussion.deleteOne({ _id: id_layer })
+                await Discussion.deleteMany({ layer: id_layer })
+
+                res.status(200).json({
+                    status: 200,
+                    message: `Success Delete Discussion ${id_layer}`
+                })
+            } else {
+                res.status(403).json({
+                    status: 403,
+                    message: 'failed',
+                    info: "you dont have previlage to do this action"
+                })
+            }
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+const controller = {
+    create_discussion,
+    get_discussion_topic,
+    get_discussion_layer,
+    get_discussion_detail,
+    user_edit_discussion,
+    user_delete_discussion,
+    sysadmin_delete_discussion
+}
+
+export default controller

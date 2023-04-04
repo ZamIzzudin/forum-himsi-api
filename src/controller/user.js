@@ -84,6 +84,7 @@ const create_verified = async (req, res, next) => {
 
         // set default
         const role = 'Verified'
+        const is_verified = true
         const username = `Emmo Fish ${Math.floor(Math.random() * 11) * Math.floor(Math.random() * 11)}`
         const display_name = username.toLowerCase().replace(' ', '_')
         const encrypted_password = await encrpyt_one_way(password)
@@ -94,6 +95,7 @@ const create_verified = async (req, res, next) => {
             display_name,
             email,
             role,
+            is_verified,
             password: encrypted_password
         })
 
