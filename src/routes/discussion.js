@@ -8,16 +8,16 @@ const discussion = express.Router()
 discussion.post('/discussion/:id_topic', controller.create_discussion)
 
 // Get
-discussion.post('/discussion/topic/:id_topic', controller.get_discussion_topic)
-discussion.post('/discussion/layer/:id_layer', controller.get_discussion_layer)
-discussion.post('/discussion/:id_layer', controller.get_discussion_detail)
+discussion.get('/discussion/topic/:id_topic', controller.get_discussion_topic)
+discussion.get('/discussion/layer/:id_layer', controller.get_discussion_layer)
+discussion.get('/discussion/:id_layer', controller.get_discussion_detail)
 
 // Put
-discussion.post('/discussion/:id_layer', common, controller.user_edit_discussion)
-discussion.post('/discussion/:id_layer', sysadmin, controller.get_discussion_detail)
+discussion.put('/discussion/:id_layer', common, controller.user_edit_discussion)
+discussion.put('/discussion/:id_layer', sysadmin, controller.get_discussion_detail)
 
 // Delete
-discussion.post('/discussion/:id_layer', common, controller.get_discussion_detail)
-discussion.post('/discussion/admin/:id_layer', sysadmin, controller.get_discussion_detail)
+discussion.delete('/discussion/:id_layer', common, controller.get_discussion_detail)
+discussion.delete('/discussion/admin/:id_layer', sysadmin, controller.get_discussion_detail)
 
 export default discussion
