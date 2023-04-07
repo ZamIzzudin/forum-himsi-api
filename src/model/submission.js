@@ -4,6 +4,10 @@ const submission_schema = new mongoose.Schema({
     created_by: String,
     email: String,
     contact: String,
+    status: {
+        type: String,
+        default: "Submitted"
+    },
     name: String,
     password: String,
     organization: String,
