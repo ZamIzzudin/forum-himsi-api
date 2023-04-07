@@ -83,6 +83,11 @@ const get_discussion_topic = async (req, res, next) => {
 
             result.forEach(discussion => {
                 const user = User.findOne({ _id: discussion.created_by })
+                let is_hide = result.is_hide || false
+
+                if (user.is_hide) {
+                    is_hide = false
+                }
 
                 discussions.push({
                     body: discussion.body,
@@ -91,6 +96,7 @@ const get_discussion_topic = async (req, res, next) => {
                     updated_at: discussion.updated_at,
                     discussion: discussion.discussion,
                     username: user.username,
+                    is_hide,
                     display_name: user.display_name,
                     profile_picture: user.profile_picture
                 })
@@ -128,6 +134,11 @@ const get_discussion_layer = (req, res, next) => {
 
             result.forEach(discussion => {
                 const user = User.findOne({ _id: discussion.created_by })
+                let is_hide = result.is_hide || false
+
+                if (user.is_hide) {
+                    is_hide = false
+                }
 
                 discussions.push({
                     body: discussion.body,
@@ -136,6 +147,7 @@ const get_discussion_layer = (req, res, next) => {
                     updated_at: discussion.updated_at,
                     discussion: discussion.discussion,
                     username: user.username,
+                    is_hide,
                     display_name: user.display_name,
                     profile_picture: user.profile_picture
                 })
@@ -170,6 +182,11 @@ const get_discussion_detail = (req, res, next) => {
             })
         } else {
             const user = User.findOne({ _id: discussion.created_by })
+            let is_hide = discussion.is_hide || false
+
+            if (user.is_hide) {
+                is_hide = false
+            }
 
             const payload = {
                 body: discussion.body,
@@ -178,6 +195,7 @@ const get_discussion_detail = (req, res, next) => {
                 updated_at: discussion.updated_at,
                 discussion: discussion.discussion,
                 username: user.username,
+                is_hide,
                 display_name: user.display_name,
                 profile_picture: user.profile_picture
             }

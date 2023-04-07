@@ -5,6 +5,10 @@ const discussion_schema = new mongoose.Schema({
     topic: String,
     body: String,
     layer: [],
+    is_hide: {
+        type: Boolean,
+        default: false
+    },
     discussion: {
         type: Array,
         default: []

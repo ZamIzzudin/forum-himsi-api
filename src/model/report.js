@@ -2,7 +2,14 @@ import mongoose from "mongoose";
 
 const report_schema = new mongoose.Schema({
     created_by: String,
-    type: String,
+    status: {
+        type: String,
+        default: 'Submitted'
+    },
+    type: {
+        type: String,
+        enum: ['Account', 'Post', 'Discussion'],
+    },
     reason: String,
     content: String,
     created_at: {

@@ -108,6 +108,12 @@ const get_posts = async (req, res) => {
                     setup_posts = await Promise.all(posts.map(async (post) => {
                         const user = await User.findOne({ _id: post.created_by })
 
+                        let is_hide = post.is_hide || false
+
+                        if (user.is_hide) {
+                            is_hide = false
+                        }
+
                         if (user) {
                             return {
                                 id: post._id,
@@ -120,6 +126,7 @@ const get_posts = async (req, res) => {
                                 username: user.username,
                                 display_name: user.display_name,
                                 profile_picture: user.profile_picture,
+                                is_hide,
                                 updated_at: post.updated_at
                             }
                         }
@@ -161,6 +168,12 @@ const get_detail_post = async (req, res) => {
 
         const post_creator = await User.findOne({ _id: post.created_by })
 
+        let is_hide = post.is_hide || false
+
+        if (post_creator.is_hide) {
+            is_hide = false
+        }
+
         res.status(200).json({
             status: 200,
             message: `Success Get Detail Post ${id_post}`,
@@ -175,6 +188,7 @@ const get_detail_post = async (req, res) => {
                 username: post_creator.username,
                 display_name: post_creator.display_name,
                 profile_picture: post_creator.profile_picture,
+                is_hide,
                 updated_at: post.updated_at
             }
         })

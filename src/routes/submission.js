@@ -29,10 +29,12 @@ const submission = express.Router()
 
 // GET
 submission.get('/submissions', sysadmin, controller.get_submission_list)
+submission.get('/my/submissions', common, controller.get_submission_list)
 submission.get('/submission/:id_submission', sysadmin, controller.get_submission_detail)
+submission.get('/my/submission/:id_submission', common, controller.get_submission_detail)
 
 // POST
-submission.post('/submission', upload.fields([{ name: 'attachments', maxCount: 4 }]), controller.create_submission)
+submission.post('/submission', common, upload.fields([{ name: 'attachments', maxCount: 4 }]), controller.create_submission)
 
 // PUT
 submission.put('/submission/:id_submission', sysadmin, controller.approve_submission)
