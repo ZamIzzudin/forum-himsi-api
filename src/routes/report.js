@@ -5,7 +5,7 @@ import { users, sysadmin } from "../middleware/privilege.js"
 const report = express.Router()
 
 // POST
-report.post('/reports', sysadmin, controller.create_report)
+report.post('/reports', users, controller.create_report)
 
 // GET
 report.get('/reports', sysadmin, controller.get_report_list)

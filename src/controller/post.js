@@ -1,12 +1,13 @@
 import Post from "../model/post.js"
 import User from "../model/user.js"
 import Discussion from '../model/discussion.js'
+import Category from "../model/category.js"
 import cloudinary from '../libs/cloudinary.js'
 import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
-    const { category, head, body } = req.body
-    const { attachments = [] } = req.files
+    const { category, body } = req.body
+    const { video_attachments = [], picture_attachments = [] } = req.files
     const { authorization: raw_token } = req.headers
 
     const token = raw_token.split(' ')[1]
@@ -23,22 +24,34 @@ const create_post = async (req, res) => {
 
             let url_attachments = []
 
-            if (attachments?.length > 0) {
-                url_attachments = await Promise.all(attachments.map(async (attachment) => {
-                    const upload_profile_picture = await cloudinary.uploader.upload(attachment.path)
-                    const url_picture = upload_profile_picture.secure_url
-                    const url_public = upload_profile_picture.public_id
+            if (video_attachments?.length > 0) {
+                await Promise.all(video_attachments.map(async (attachment) => {
+                    const upload_video = await cloudinary.uploader.upload_large(attachment.path, { resource_type: 'video' })
+                    const url_video = upload_video.secure_url
+                    const url_public = upload_video.public_id
 
-                    return {
+                    url_attachments.push({
+                        public_id: url_public,
+                        url: url_video
+                    })
+                }))
+            }
+
+            if (picture_attachments?.length > 0) {
+                await Promise.all(picture_attachments.map(async (attachment) => {
+                    const upload_picture = await cloudinary.uploader.upload(attachment.path)
+                    const url_picture = upload_picture.secure_url
+                    const url_public = upload_picture.public_id
+
+                    url_attachments.push({
                         public_id: url_public,
                         url: url_picture
-                    }
+                    })
                 }))
             }
 
             const payload = {
                 category,
-                head,
                 body,
                 attachments: url_attachments,
                 created_by: decoded.id,
@@ -56,6 +69,22 @@ const create_post = async (req, res) => {
                 })
             }
 
+            category.forEach(async (each) => {
+                const query_category = { name: { $in: [each] } }
+                const categories = await Category.findOne(query_category)
+
+                if (!categories) {
+                    const payload_category = {
+                        name: each,
+                        posts: 1
+                    }
+                    await Category.create(payload_category)
+                } else {
+                    const posts_amount = ++categories.posts
+                    await Category.updateOne(query_category, { posts: posts_amount })
+                }
+            })
+
             res.status(200).json({
                 status: 200,
                 message: "Success Add New Post"
@@ -71,7 +100,7 @@ const create_post = async (req, res) => {
 }
 
 const get_posts = async (req, res) => {
-    let { category, topic, page = 1 } = req.query;
+    let { category, page = 1 } = req.query;
     let query = {}
 
     //filter by category
@@ -80,16 +109,6 @@ const get_posts = async (req, res) => {
             ...query,
             'category': {
                 $in: [category]
-            }
-        }
-    }
-
-    if (topic) {
-        query = {
-            ...query,
-            'head': {
-                $regex: topic,
-                $options: "i"
             }
         }
     }
@@ -202,8 +221,8 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category, head, body } = req.body
-    const { attachments = [] } = req.files
+    const { category, body } = req.body
+    const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
 
@@ -234,17 +253,35 @@ const edit_post = async (req, res) => {
             let url_attachments = []
 
             if (decoded.id === post.created_by) {
-                if (attachments?.length > 0) {
-                    url_attachments = await Promise.all(attachments.map(async (attachment) => {
+                if (picture_attachments?.length > 0) {
+                    await Promise.all(picture_attachments.map(async (attachment) => {
                         if (attachment.path) {
-                            const upload_profile_picture = await cloudinary.uploader.upload(attachment.path)
-                            const url_picture = upload_profile_picture.secure_url
-                            const url_public = upload_profile_picture.public_id
+                            const upload_picture = await cloudinary.uploader.upload(attachment.path)
+                            const url_picture = upload_picture.secure_url
+                            const url_public = upload_picture.public_id
 
-                            return {
+                            url_attachments.push({
                                 public_id: url_public,
                                 url: url_picture
-                            }
+                            })
+                        } else {
+                            maintained_attachment.push(attachment.public_id)
+                            return attachment
+                        }
+                    }))
+                }
+
+                if (video_attachments?.length > 0) {
+                    await Promise.all(video_attachments.map(async (attachment) => {
+                        if (attachment.path) {
+                            const upload_video = await cloudinary.uploader.upload_large(attachment.path, { resource_type: 'video' })
+                            const url_video = upload_video.secure_url
+                            const url_public = upload_video.public_id
+
+                            url_attachments.push({
+                                public_id: url_public,
+                                url: url_video
+                            })
                         } else {
                             maintained_attachment.push(attachment.public_id)
                             return attachment
@@ -254,7 +291,6 @@ const edit_post = async (req, res) => {
 
                 const payload = {
                     category,
-                    head,
                     body,
                     attachments: url_attachments,
                     updated_at: new Date().toISOString(),

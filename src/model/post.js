@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const post_schema = new mongoose.Schema({
     created_by: String,
     category: Array,
-    head: String,
     body: String,
     attachments: Array,
     likes: {

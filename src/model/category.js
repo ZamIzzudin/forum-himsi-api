@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 const category_schema = new mongoose.Schema({
-    categories: {
-        type: Array,
-        default: []
+    name: String,
+    posts: {
+        type: Number,
+        default: 0
     }
 });
 

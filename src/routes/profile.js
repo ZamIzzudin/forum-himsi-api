@@ -1,7 +1,7 @@
 import express from "express"
 import multer from "multer"
 import controller from "../controller/profile.js"
-import { sysadmin } from "../middleware/privilege.js"
+import { verified, users } from "../middleware/privilege.js"
 
 //config images storage
 const filestorage = multer.diskStorage({
@@ -34,8 +34,8 @@ profile.get('/profile/user/:id', controller.get_user)
 
 
 // PUT
-profile.put('/profile/user/:id', controller.update_profile)
-profile.put('/profile/change-profile-picture/:id', sysadmin, upload.fields([{ name: 'profile_picture', maxCount: 1 }]), controller.change_profile_picture)
+profile.put('/profile/user/:id', users, controller.update_profile)
+profile.put('/profile/change-profile-picture/:id', verified, upload.fields([{ name: 'profile_picture', maxCount: 1 }]), controller.change_profile_picture)
 
 // DELETE
 

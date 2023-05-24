@@ -315,6 +315,57 @@ const user_delete_discussion = (req, res, next) => {
     }
 }
 
+const sysadmin_edit_discussion = (req, res, next) => {
+    const { id_layer } = req.params
+    const { body } = req.body
+    const { authorization: raw_token } = req.headers
+
+    const token = raw_token.split(' ')[1]
+
+    try {
+        verify_access_token(token, async (error, decoded) => {
+            if (error) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "token not found"
+                })
+            }
+
+            const discussion = await Discussion.findOne(query)
+            if (!discussion) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: "can't find discussion"
+                })
+            }
+
+            if (decoded.role === 'sysadmin') {
+                await Discussion.updateOne({ _id: id_layer }, { body: body })
+
+                res.status(200).json({
+                    status: 200,
+                    message: `Success Update Discussion ${id_layer}`
+                })
+            } else {
+                res.status(403).json({
+                    status: 403,
+                    message: 'failed',
+                    info: "you dont have previlage to do this action"
+                })
+            }
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: 'failed',
+            info: 'server error'
+        })
+    }
+}
+
+
 const sysadmin_delete_discussion = (req, res, next) => {
     const { id_layer } = req.params
     const { authorization: raw_token } = req.headers
@@ -372,6 +423,7 @@ const controller = {
     get_discussion_detail,
     user_edit_discussion,
     user_delete_discussion,
+    sysadmin_edit_discussion,
     sysadmin_delete_discussion
 }
 

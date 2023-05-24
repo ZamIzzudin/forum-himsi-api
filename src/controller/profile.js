@@ -3,9 +3,34 @@ import cloudinary from '../libs/cloudinary.js';
 import { verify_access_token } from '../libs/jwt.js'
 
 const get_user_list = async (req, res) => {
+    const { organizational, username } = req.query
+
+    let query = {
+        is_banned: false, is_hide: false
+    }
+
+    if (username) {
+        query = {
+            ...query,
+            'is_verified': {
+                $in: [true]
+            }
+        }
+    }
+
+    if (organizational) {
+        const is_verified = organizational ? true : false
+        query = {
+            ...query,
+            'is_verified': {
+                $in: [is_verified]
+            }
+        }
+    }
+
     try {
         //get all user data
-        const user = await User.find({ is_banned: false, is_hide: false }) || []
+        const user = await User.find(query) || []
 
         //when data user is not found
         if (!user) {

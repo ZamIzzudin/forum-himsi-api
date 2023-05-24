@@ -162,6 +162,7 @@ const get_report_detail = async (req, res, next) => {
 
 const approve_report = (req, res, next) => {
     const { id_report } = req.params
+    const { status } = req.body
 
     const query = { _id, id_report }
     try {
@@ -184,7 +185,7 @@ const approve_report = (req, res, next) => {
                 })
             }
 
-            await Report.updateOne(query, { status: 'Approved', updated_at: new Date().toISOString() })
+            await Report.updateOne(query, { status: status, updated_at: new Date().toISOString() })
 
             switch (report.type) {
                 case 'Account':

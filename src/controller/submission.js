@@ -6,7 +6,7 @@ import { verify_access_token } from '../libs/jwt.js'
 
 const create_submission = async (req, res, next) => {
     const { attachments } = req.files
-    const { email, contact, name, password, organization } = req.body
+    const { email, username, password, organization } = req.body
     try {
         verify_access_token(token, async (error, decoded) => {
             if (error) {
@@ -37,8 +37,7 @@ const create_submission = async (req, res, next) => {
 
             const payload = {
                 email,
-                contact,
-                name,
+                username,
                 password: encrypted_password,
                 attachments: url_attachments,
                 organization,
@@ -189,49 +188,61 @@ const get_submission_detail = async (req, res, next) => {
 
 const approve_submission = async (req, res, next) => {
     const { id_submission } = req.params
+    const { status } = req.body
 
     const query = { _id: id_submission }
     try {
-        const result = await Submission.findOne(query)
+        verify_access_token(token, async (error, decoded) => {
+            if (error) {
+                return res.status(401).json({
+                    status: 401,
+                    message: 'failed',
+                    info: 'forbidden'
+                })
+            }
+            const result = await Submission.findOne(query)
 
-        if (!result) {
-            res.status(400).json({
-                status: 400,
-                message: 'failed',
-                info: 'cannot find submission'
+            if (!result) {
+                res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: 'cannot find submission'
+                })
+            }
+
+            await Submission.updateOne(query, { status: status, updated_at: new Date().toISOString() })
+
+            // Make Account
+            const role = 'Verified'
+            const is_verified = true
+            const username = result.username
+            const display_name = result.organization.toLowerCase().replace(' ', '_')
+
+            const payload = { created_by: decoded.id }
+
+            const new_user = await User.updateOne(payload, {
+                username,
+                display_name,
+                email: result.email,
+                role,
+                is_verified,
+                password: result.password
             })
-        }
 
-        await Submission.updateOne(query, { status: 'Approved', updated_at: new Date().toISOString() })
+            if (!new_user) {
+                return res.status(400).json({
+                    status: 400,
+                    message: 'failed',
+                    info: 'failed to create an account'
+                })
+            } else {
+                return res.status(200).json({
+                    status: 200,
+                    message: `success approve submission ${id_submission}`,
+                })
+            }
 
-        // Make Account
-        const role = 'Verified'
-        const is_verified = true
-        const username = `Emmo Fish ${Math.floor(Math.random() * 11) * Math.floor(Math.random() * 11)}`
-        const display_name = username.toLowerCase().replace(' ', '_')
-
-        const new_user = await User.create({
-            username,
-            display_name,
-            email: result.email,
-            role,
-            is_verified,
-            password: result.password
         })
-
-        if (!new_user) {
-            return res.status(400).json({
-                status: 400,
-                message: 'failed',
-                info: 'failed to create an account'
-            })
-        } else {
-            return res.status(200).json({
-                status: 200,
-                message: `success approve submission ${id_submission}`,
-            })
-        }
-
     } catch (err) {
         return res.status(500).json({
             status: 500,

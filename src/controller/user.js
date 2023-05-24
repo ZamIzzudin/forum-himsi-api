@@ -70,7 +70,7 @@ const create_user = async (req, res, next) => {
 }
 
 const create_verified = async (req, res, next) => {
-    const { password, email } = req.body;
+    const { password, email, username, display_name } = req.body;
     try {
         //check duplicated email
         const user = await User.findOne({ email });
@@ -85,8 +85,8 @@ const create_verified = async (req, res, next) => {
         // set default
         const role = 'Verified'
         const is_verified = true
-        const username = `Emmo Fish ${Math.floor(Math.random() * 11) * Math.floor(Math.random() * 11)}`
-        const display_name = username.toLowerCase().replace(' ', '_')
+        const username = username
+        const display_name = display_name.toLowerCase().replace(' ', '_')
         const encrypted_password = await encrpyt_one_way(password)
 
         // create user

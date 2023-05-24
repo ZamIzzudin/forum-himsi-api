@@ -14,7 +14,7 @@ discussion.get('/discussion/:id_layer', controller.get_discussion_detail)
 
 // Put
 discussion.put('/discussion/:id_layer', common, controller.user_edit_discussion)
-discussion.put('/discussion/:id_layer', sysadmin, controller.get_discussion_detail)
+discussion.put('/discussion/admin/:id_layer', sysadmin, controller.get_discussion_detail)
 
 // Delete
 discussion.delete('/discussion/:id_layer', common, controller.get_discussion_detail)
