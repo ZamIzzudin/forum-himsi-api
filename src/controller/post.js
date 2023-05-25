@@ -6,7 +6,7 @@ import cloudinary from '../libs/cloudinary.js'
 import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
-    const { category = [], body } = req.body
+    const { category, body } = req.body
     const { picture_attachments = [] } = req.files
     const { video_attachments = [] } = req.files
     const { authorization: raw_token } = req.headers
@@ -68,8 +68,9 @@ const create_post = async (req, res) => {
                 })
             }
 
+            const category_parse = JSON.parse(category) || []
 
-            category.forEach(async (each) => {
+            category_parse.forEach(async (each) => {
                 const query_category = { name: { $in: [each] } }
                 const categories = await Category.findOne(query_category)
 
