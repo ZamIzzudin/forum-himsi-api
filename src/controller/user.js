@@ -46,6 +46,7 @@ const create_user = async (req, res, next) => {
                 message: 'success',
                 id: new_user._id,
                 username: new_user.username,
+                display_name: new_user.display_name,
                 role,
                 access_token,
             })
@@ -102,6 +103,7 @@ const create_verified = async (req, res, next) => {
                 status: 201,
                 message: 'success',
                 username: new_user.username,
+                username: new_user.display_name,
                 role,
             })
 
@@ -161,6 +163,7 @@ const login = async (req, res) => {
                 message: 'success',
                 id: user._id,
                 username: user.username,
+                display_name: user.display_name,
                 role: user.role,
                 access_token
             });
@@ -218,6 +221,8 @@ const refresh_token = async (req, res, next) => {
             res.status(200).json({
                 status: 200,
                 message: 'success',
+                username: user.username,
+                display_name: user.display_name,
                 role: decoded.role,
                 access_token
             })
