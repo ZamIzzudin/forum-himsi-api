@@ -3,7 +3,7 @@ import { encrpyt_one_way, pairing_one_way } from '../libs/crypt.js'
 import { create_access_token, create_refresh_token, verify_refresh_token } from '../libs/jwt.js'
 
 const create_user = async (req, res, next) => {
-    const { password, email } = req.body;
+    const { password, email, username, name } = req.body;
     try {
         //check duplicated email
         const user = await User.findOne({ email });
@@ -17,8 +17,7 @@ const create_user = async (req, res, next) => {
 
         // set default
         const role = 'Common'
-        const username = `Bald Fish ${Math.floor(Math.random() * 11) * Math.floor(Math.random() * 11)}`
-        const display_name = username.toLowerCase().replace(' ', '_')
+        const display_name = name
         const encrypted_password = await encrpyt_one_way(password)
 
         // create user
@@ -85,8 +84,6 @@ const create_verified = async (req, res, next) => {
         // set default
         const role = 'Verified'
         const is_verified = true
-        const username = username
-        const display_name = display_name.toLowerCase().replace(' ', '_')
         const encrypted_password = await encrpyt_one_way(password)
 
         // create user
@@ -121,7 +118,7 @@ const create_verified = async (req, res, next) => {
         res.status(500).json({
             status: 500,
             message: 'failed',
-            info: 'server error'
+            info: err
         })
     }
 }

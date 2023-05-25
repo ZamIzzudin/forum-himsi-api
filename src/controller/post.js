@@ -7,7 +7,8 @@ import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
     const { category, body } = req.body
-    const { video_attachments = [], picture_attachments = [] } = req.files
+    const { picture_attachments = [] } = req.files
+    const { video_attachments = [] } = req.files
     const { authorization: raw_token } = req.headers
 
     const token = raw_token.split(' ')[1]
@@ -26,13 +27,11 @@ const create_post = async (req, res) => {
 
             if (video_attachments?.length > 0) {
                 await Promise.all(video_attachments.map(async (attachment) => {
-                    const upload_video = await cloudinary.uploader.upload_large(attachment.path, { resource_type: 'video' })
-                    const url_video = upload_video.secure_url
-                    const url_public = upload_video.public_id
-
-                    url_attachments.push({
-                        public_id: url_public,
-                        url: url_video
+                    await cloudinary.uploader.upload(attachment.path, { resource_type: 'video', chunk_size: 6000000, }).then(result => {
+                        url_attachments.push({
+                            public_id: result.public_id,
+                            url: result.url
+                        })
                     })
                 }))
             }
@@ -87,7 +86,8 @@ const create_post = async (req, res) => {
 
             res.status(200).json({
                 status: 200,
-                message: "Success Add New Post"
+                message: "Success Add New Post",
+                post
             })
         })
     } catch (err) {
@@ -274,13 +274,11 @@ const edit_post = async (req, res) => {
                 if (video_attachments?.length > 0) {
                     await Promise.all(video_attachments.map(async (attachment) => {
                         if (attachment.path) {
-                            const upload_video = await cloudinary.uploader.upload_large(attachment.path, { resource_type: 'video' })
-                            const url_video = upload_video.secure_url
-                            const url_public = upload_video.public_id
-
-                            url_attachments.push({
-                                public_id: url_public,
-                                url: url_video
+                            await cloudinary.uploader.upload(attachment.path, { resource_type: 'video', chunk_size: 6000000, }).then(result => {
+                                url_attachments.push({
+                                    public_id: result.public_id,
+                                    url: result.url
+                                })
                             })
                         } else {
                             maintained_attachment.push(attachment.public_id)
