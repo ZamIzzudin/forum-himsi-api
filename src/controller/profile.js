@@ -47,7 +47,6 @@ const get_user_list = async (req, res) => {
             });
         }
     } catch (err) {
-        console.log(err.message);
         res.status(500).json({
             status: 500,
             message: 'failed',
@@ -112,32 +111,32 @@ const update_profile = async (req, res) => {
                     message: 'failed',
                     info: 'forbidden'
                 })
-            }
-
-            if (decoded.id === id) {
-                // update user data
-                const user = await User.updateOne({ _id: id }, { $set: payload })
-
-                // when data user is not found
-                if (!user.acknowledged) {
-                    return res.status(400).json({
-                        status: 400,
-                        message: 'failed',
-                        info: 'cannot update user'
-                    })
-                } else {
-                    res.status(200).json({
-                        status: 200,
-                        message: 'success',
-                        info: `successfully update user profile ${id}`
-                    });
-                }
             } else {
-                return res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: 'you dont have previlege to do this action'
-                })
+                if (decoded.id === id) {
+                    // update user data
+                    const user = await User.updateOne({ _id: id }, { $set: payload })
+
+                    // when data user is not found
+                    if (!user.acknowledged) {
+                        return res.status(400).json({
+                            status: 400,
+                            message: 'failed',
+                            info: 'cannot update user'
+                        })
+                    } else {
+                        res.status(200).json({
+                            status: 200,
+                            message: 'success',
+                            info: `successfully update user profile ${id}`
+                        });
+                    }
+                } else {
+                    return res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: 'you dont have previlege to do this action'
+                    })
+                }
             }
         })
     } catch (err) {
@@ -165,69 +164,69 @@ const change_profile_picture = async (req, res) => {
                     message: 'failed',
                     info: 'forbidden'
                 })
-            }
-
-            if (profile_picture.length === 0) {
-                return res.status(400).json({
-                    status: 400,
-                    message: 'failed',
-                    info: "image doesn't exist"
-                })
-            }
-
-            if (decoded.id === id) {
-                const path = profile_picture[0].path
-
-                const existing = await User.findOne({ _id: id })
-
-                if (!existing) {
+            } else {
+                if (profile_picture.length === 0) {
                     return res.status(400).json({
                         status: 400,
                         message: 'failed',
-                        info: "profile not found"
-                    })
-                }
-
-                // delete old images
-                if (existing.profile_picture.public_id !== 'none') {
-                    await cloudinary.uploader.destroy(existing.profile_picture.public_id)
-                }
-
-                // upload new image
-                const upload_profile_picture = await cloudinary.uploader.upload(path)
-                const url_picture = upload_profile_picture.secure_url
-                const url_public = upload_profile_picture.public_id
-
-                // update user data
-                const user = await User.updateOne({ _id: id }, {
-                    $set: {
-                        profile_picture: {
-                            public_id: url_public,
-                            url: url_picture
-                        }
-                    }
-                })
-
-                // when data user is not found
-                if (!user.acknowledged) {
-                    return res.status(400).json({
-                        status: 400,
-                        message: 'failed',
-                        info: 'cannot update user'
+                        info: "image doesn't exist"
                     })
                 } else {
-                    res.status(200).json({
-                        status: 200,
-                        message: 'success',
-                        info: `successfully update user profile picture ${id}`
-                    });
+                    if (decoded.id === id) {
+                        const path = profile_picture[0].path
+
+                        const existing = await User.findOne({ _id: id })
+
+                        if (!existing) {
+                            return res.status(400).json({
+                                status: 400,
+                                message: 'failed',
+                                info: "profile not found"
+                            })
+                        } else {
+                            // delete old images
+                            if (existing.profile_picture.public_id !== 'none') {
+                                await cloudinary.uploader.destroy(existing.profile_picture.public_id)
+                            }
+
+                            // upload new image
+                            const upload_profile_picture = await cloudinary.uploader.upload(path)
+                            const url_picture = upload_profile_picture.secure_url
+                            const url_public = upload_profile_picture.public_id
+
+                            // update user data
+                            const user = await User.updateOne({ _id: id }, {
+                                $set: {
+                                    profile_picture: {
+                                        public_id: url_public,
+                                        url: url_picture
+                                    }
+                                }
+                            })
+
+                            // when data user is not found
+                            if (!user.acknowledged) {
+                                return res.status(400).json({
+                                    status: 400,
+                                    message: 'failed',
+                                    info: 'cannot update user'
+                                })
+                            } else {
+                                res.status(200).json({
+                                    status: 200,
+                                    message: 'success',
+                                    info: `successfully update user profile picture ${id}`
+                                });
+                            }
+                        }
+                    } else {
+                        return res.status(403).json({
+                            status: 403,
+                            message: 'failed',
+                            info: 'you dont have previlege to do this action'
+                        })
+                    }
                 }
-            } else {
-                return res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: 'you dont have previlege to do this action'
-                })
             }
         })
     } catch (err) {

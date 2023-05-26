@@ -18,29 +18,29 @@ const create_discussion = (req, res, next) => {
                     message: 'failed',
                     info: 'unauthorized'
                 })
+            } else {
+                const payload = {
+                    created_by: decoded.id,
+                    topic: id_topic,
+                    body,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                }
+
+                const discussion = await Discussion.create(payload)
+
+                const post = await Post.findOne({ _id: id_topic })
+
+                const exist_discussion = post.discussion
+                exist_discussion.push(discussion._id)
+
+                await Post.updateOne({ _id: id_topic }, { discussion: exist_discussion })
+
+                return res.status(203).json({
+                    status: 203,
+                    message: 'successfully create discussion'
+                })
             }
-
-            const payload = {
-                created_by: decoded.id,
-                topic: id_topic,
-                body,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            }
-
-            const discussion = await Discussion.create(payload)
-
-            const post = await Post.findOne({ _id: id_topic })
-
-            const exist_discussion = post.discussion
-            exist_discussion.push(discussion._id)
-
-            await Post.updateOne({ _id: id_topic }, { discussion: exist_discussion })
-
-            return res.status(203).json({
-                status: 203,
-                message: 'successfully create discussion'
-            })
         })
     } catch (err) {
         return res.status(500).json({
@@ -125,21 +125,21 @@ const user_edit_discussion = (req, res, next) => {
                     message: 'failed',
                     info: "can't find discussion"
                 })
-            }
-
-            if (decoded.id === discussion.created_by) {
-                await Discussion.updateOne({ _id: id_layer }, { body: body })
-
-                res.status(200).json({
-                    status: 200,
-                    message: `Success Update Discussion ${id_layer}`
-                })
             } else {
-                res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: "you dont have previlage to do this action"
-                })
+                if (decoded.id === discussion.created_by) {
+                    await Discussion.updateOne({ _id: id_layer }, { body: body })
+
+                    res.status(200).json({
+                        status: 200,
+                        message: `Success Update Discussion ${id_layer}`
+                    })
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: "you dont have previlage to do this action"
+                    })
+                }
             }
         })
     } catch (err) {
@@ -174,21 +174,31 @@ const user_delete_discussion = (req, res, next) => {
                     message: 'failed',
                     info: "can't find discussion"
                 })
-            }
-
-            if (decoded.id === discussion.created_by) {
-                await Discussion.deleteOne({ _id: id_layer })
-
-                res.status(200).json({
-                    status: 200,
-                    message: `Success Delete Discussion ${id_layer}`
-                })
             } else {
-                res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: "you dont have previlage to do this action"
-                })
+                if (decoded.id === discussion.created_by) {
+                    await Discussion.deleteOne({ _id: id_layer })
+                    const post = await Post.findOne({ _id: discussion.topic })
+
+                    const update_discussion = post.discussion.filter(each => each != id_layer)
+
+                    const payload = {
+                        discussion: update_discussion
+                    }
+
+                    await Post.updateOne({ _id: discussion.topic }, payload)
+                    console.log({ _id: discussion.topic })
+
+                    res.status(200).json({
+                        status: 200,
+                        message: `Success Delete Discussion ${id_layer}`
+                    })
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: "you dont have previlage to do this action"
+                    })
+                }
             }
         })
     } catch (err) {
@@ -224,21 +234,21 @@ const sysadmin_edit_discussion = (req, res, next) => {
                     message: 'failed',
                     info: "can't find discussion"
                 })
-            }
-
-            if (decoded.role === 'sysadmin') {
-                await Discussion.updateOne({ _id: id_layer }, { body: body })
-
-                res.status(200).json({
-                    status: 200,
-                    message: `Success Update Discussion ${id_layer}`
-                })
             } else {
-                res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: "you dont have previlage to do this action"
-                })
+                if (decoded.role === 'sysadmin') {
+                    await Discussion.updateOne({ _id: id_layer }, { body: body })
+
+                    res.status(200).json({
+                        status: 200,
+                        message: `Success Update Discussion ${id_layer}`
+                    })
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: "you dont have previlage to do this action"
+                    })
+                }
             }
         })
     } catch (err) {
@@ -273,21 +283,30 @@ const sysadmin_delete_discussion = (req, res, next) => {
                     message: 'failed',
                     info: "can't find discussion"
                 })
-            }
-
-            if (decoded.role.toLowerCase() === 'sysadmin') {
-                await Discussion.deleteOne({ _id: id_layer })
-
-                res.status(200).json({
-                    status: 200,
-                    message: `Success Delete Discussion ${id_layer}`
-                })
             } else {
-                res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: "you dont have previlage to do this action"
-                })
+                if (decoded.role.toLowerCase() === 'sysadmin') {
+                    await Discussion.deleteOne({ _id: id_layer })
+                    const post = await Post.findOne({ _id: discussion.topic })
+
+                    const update_discussion = post.discussion.filter(each => each != id_layer)
+
+                    const payload = {
+                        discussion: update_discussion
+                    }
+
+                    await Post.updateOne({ _id: discussion.topic }, payload)
+
+                    res.status(200).json({
+                        status: 200,
+                        message: `Success Delete Discussion ${id_layer}`
+                    })
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: "you dont have previlage to do this action"
+                    })
+                }
             }
         })
     } catch (err) {

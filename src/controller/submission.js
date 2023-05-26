@@ -15,48 +15,48 @@ const create_submission = async (req, res, next) => {
                     message: 'failed',
                     info: 'forbidden'
                 })
+            } else {
+                let url_attachments = []
+
+                if (attachments?.length > 0) {
+                    url_attachments = await Promise.all(attachments.map(async (attachment) => {
+                        const upload_profile_picture = await cloudinary.uploader.upload(attachment.path)
+                        const url_picture = upload_profile_picture.secure_url
+                        const url_public = upload_profile_picture.public_id
+
+                        return {
+                            public_id: url_public,
+                            url: url_picture
+                        }
+                    }))
+                }
+
+                // set default 
+                const encrypted_password = await encrpyt_one_way(password)
+
+                const payload = {
+                    email,
+                    username,
+                    password: encrypted_password,
+                    attachments: url_attachments,
+                    organization,
+                    created_by: decoded.id
+                }
+
+                const submission = await Submission.create(payload)
+                if (!submission) {
+                    return res.status(400).json({
+                        status: 403,
+                        message: 'failed',
+                        info: 'failed to create a new submssion'
+                    })
+                } else {
+                    return res.status(200).json({
+                        status: 200,
+                        message: "Success Add New Submission"
+                    })
+                }
             }
-
-            let url_attachments = []
-
-            if (attachments?.length > 0) {
-                url_attachments = await Promise.all(attachments.map(async (attachment) => {
-                    const upload_profile_picture = await cloudinary.uploader.upload(attachment.path)
-                    const url_picture = upload_profile_picture.secure_url
-                    const url_public = upload_profile_picture.public_id
-
-                    return {
-                        public_id: url_public,
-                        url: url_picture
-                    }
-                }))
-            }
-
-            // set default 
-            const encrypted_password = await encrpyt_one_way(password)
-
-            const payload = {
-                email,
-                username,
-                password: encrypted_password,
-                attachments: url_attachments,
-                organization,
-                created_by: decoded.id
-            }
-
-            const submission = await Submission.create(payload)
-            if (!submission) {
-                return res.status(400).json({
-                    status: 403,
-                    message: 'failed',
-                    info: 'failed to create a new submssion'
-                })
-            }
-
-            return res.status(200).json({
-                status: 200,
-                message: "Success Add New Submission"
-            })
         })
     } catch (err) {
         return res.status(500).json({
@@ -170,13 +170,13 @@ const get_submission_detail = async (req, res, next) => {
                 message: 'failed',
                 info: 'cannot find submission'
             })
+        } else {
+            return res.status(200).json({
+                status: 200,
+                message: `success get submission detail ${id_submission}`,
+                data: result
+            })
         }
-
-        return res.status(200).json({
-            status: 200,
-            message: `success get submission detail ${id_submission}`,
-            data: result
-        })
     } catch (err) {
         return res.status(500).json({
             status: 500,
@@ -199,49 +199,49 @@ const approve_submission = async (req, res, next) => {
                     message: 'failed',
                     info: 'forbidden'
                 })
-            }
-            const result = await Submission.findOne(query)
-
-            if (!result) {
-                res.status(400).json({
-                    status: 400,
-                    message: 'failed',
-                    info: 'cannot find submission'
-                })
-            }
-
-            await Submission.updateOne(query, { status: status, updated_at: new Date().toISOString() })
-
-            // Make Account
-            const role = 'Verified'
-            const is_verified = true
-            const username = result.username
-            const display_name = result.organization.toLowerCase().replace(' ', '_')
-
-            const payload = { created_by: decoded.id }
-
-            const new_user = await User.updateOne(payload, {
-                username,
-                display_name,
-                email: result.email,
-                role,
-                is_verified,
-                password: result.password
-            })
-
-            if (!new_user) {
-                return res.status(400).json({
-                    status: 400,
-                    message: 'failed',
-                    info: 'failed to create an account'
-                })
             } else {
-                return res.status(200).json({
-                    status: 200,
-                    message: `success approve submission ${id_submission}`,
-                })
-            }
+                const result = await Submission.findOne(query)
 
+                if (!result) {
+                    res.status(400).json({
+                        status: 400,
+                        message: 'failed',
+                        info: 'cannot find submission'
+                    })
+                } else {
+                    await Submission.updateOne(query, { status: status, updated_at: new Date().toISOString() })
+
+                    // Make Account
+                    const role = 'Verified'
+                    const is_verified = true
+                    const username = result.username
+                    const display_name = result.organization.toLowerCase().replace(' ', '_')
+
+                    const payload = { created_by: decoded.id }
+
+                    const new_user = await User.updateOne(payload, {
+                        username,
+                        display_name,
+                        email: result.email,
+                        role,
+                        is_verified,
+                        password: result.password
+                    })
+
+                    if (!new_user) {
+                        return res.status(400).json({
+                            status: 400,
+                            message: 'failed',
+                            info: 'failed to create an account'
+                        })
+                    } else {
+                        return res.status(200).json({
+                            status: 200,
+                            message: `success approve submission ${id_submission}`,
+                        })
+                    }
+                }
+            }
         })
     } catch (err) {
         return res.status(500).json({
@@ -263,18 +263,18 @@ const takedown_submission = async (req, res, next) => {
                 message: 'failed',
                 info: "can't find post"
             })
+        } else {
+            await Submission.deleteOne(query)
+
+            submission?.attachments.forEach(async (attachment) => {
+                await cloudinary.uploader.destroy(attachment.public_id)
+            })
+
+            return res.status(200).json({
+                status: 200,
+                message: `Success Delete Submission ${id_submission}`
+            })
         }
-
-        await Submission.deleteOne(query)
-
-        submission?.attachments.forEach(async (attachment) => {
-            await cloudinary.uploader.destroy(attachment.public_id)
-        })
-
-        return res.status(200).json({
-            status: 200,
-            message: `Success Delete Submission ${id_submission}`
-        })
     } catch (err) {
         return res.status(500).json({
             status: 500,
