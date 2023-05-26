@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const post_schema = new mongoose.Schema({
     created_by: String,
-    category: Array,
+    category: String,
+    category_text: String,
     body: String,
     attachments: Array,
     likes: {

@@ -49,8 +49,12 @@ const create_post = async (req, res) => {
                 }))
             }
 
+            const category_parse = JSON.parse(category) || []
+            const category_text = category_parse.join(' ')
+
             const payload = {
                 category,
+                category_text,
                 body,
                 attachments: url_attachments,
                 created_by: decoded.id,
@@ -68,10 +72,8 @@ const create_post = async (req, res) => {
                 })
             }
 
-            const category_parse = JSON.parse(category) || []
-
             category_parse.forEach(async (each) => {
-                const query_category = { name: { $in: [each] } }
+                const query_category = { name: { $in: each } }
                 const categories = await Category.findOne(query_category)
 
                 if (!categories) {
@@ -102,16 +104,25 @@ const create_post = async (req, res) => {
 }
 
 const get_posts = async (req, res) => {
-    let { category, page = 1 } = req.query;
+    let { category, page = 1, id } = req.query;
     let query = {}
 
     //filter by category
     if (category) {
+        const regexPattern = new RegExp(category, 'i');
         query = {
             ...query,
             'category': {
-                $in: [category]
+                $regex: regexPattern
             }
+        }
+    }
+
+    //filter by user
+    if (id) {
+        query = {
+            ...query,
+            'created_by': id
         }
     }
 
@@ -147,6 +158,7 @@ const get_posts = async (req, res) => {
                                 username: user.username,
                                 display_name: user.display_name,
                                 profile_picture: user.profile_picture,
+                                created_by: post.created_by,
                                 is_hide,
                                 updated_at: post.updated_at
                             }
@@ -288,9 +300,12 @@ const edit_post = async (req, res) => {
                         }
                     }))
                 }
+                const category_parse = JSON.parse(category) || []
+                const category_text = category_parse.join(' ')
 
                 const payload = {
                     category,
+                    category_text,
                     body,
                     attachments: url_attachments,
                     updated_at: new Date().toISOString(),
@@ -306,6 +321,22 @@ const edit_post = async (req, res) => {
 
                 deleted_attachment.forEach(async (attachment) => {
                     await cloudinary.uploader.destroy(attachment.public_id)
+                })
+
+                category_parse.forEach(async (each) => {
+                    const query_category = { name: { $in: each } }
+                    const categories = await Category.findOne(query_category)
+
+                    if (!categories) {
+                        const payload_category = {
+                            name: each,
+                            posts: 1
+                        }
+                        await Category.create(payload_category)
+                    } else {
+                        const posts_amount = ++categories.posts
+                        await Category.updateOne(query_category, { posts: posts_amount })
+                    }
                 })
 
                 res.status(200).json({
@@ -420,6 +451,22 @@ const verified_takedown_post = async (req, res) => {
                     await cloudinary.uploader.destroy(attachment.public_id)
                 })
 
+                category_parse.forEach(async (each) => {
+                    const query_category = { name: { $in: each } }
+                    const categories = await Category.findOne(query_category)
+
+                    if (!categories) {
+                        const payload_category = {
+                            name: each,
+                            posts: 0
+                        }
+                        await Category.create(payload_category)
+                    } else {
+                        const posts_amount = categories.posts - 1
+                        await Category.updateOne(query_category, { posts: posts_amount })
+                    }
+                })
+
                 res.status(200).json({
                     status: 200,
                     message: `Success Delete Post ${id_post}`
@@ -474,6 +521,22 @@ const sysadmin_takedown_post = async (req, res) => {
 
                 post.attachments.forEach(async (attachment) => {
                     await cloudinary.uploader.destroy(attachment.public_id)
+                })
+
+                category_parse.forEach(async (each) => {
+                    const query_category = { name: { $in: each } }
+                    const categories = await Category.findOne(query_category)
+
+                    if (!categories) {
+                        const payload_category = {
+                            name: each,
+                            posts: 0
+                        }
+                        await Category.create(payload_category)
+                    } else {
+                        const posts_amount = categories.posts - 1
+                        await Category.updateOne(query_category, { posts: posts_amount })
+                    }
                 })
 
                 res.status(200).json({

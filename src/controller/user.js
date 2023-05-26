@@ -47,6 +47,7 @@ const create_user = async (req, res, next) => {
                 id: new_user._id,
                 username: new_user.username,
                 display_name: new_user.display_name,
+                profile_picture: new_user.profile_picture,
                 role,
                 access_token,
             })
@@ -103,7 +104,8 @@ const create_verified = async (req, res, next) => {
                 status: 201,
                 message: 'success',
                 username: new_user.username,
-                username: new_user.display_name,
+                display_name: new_user.display_name,
+                profile_picture: new_user.profile_picture,
                 role,
             })
 
@@ -164,6 +166,7 @@ const login = async (req, res) => {
                 id: user._id,
                 username: user.username,
                 display_name: user.display_name,
+                profile_picture: user.profile_picture,
                 role: user.role,
                 access_token
             });
@@ -223,6 +226,7 @@ const refresh_token = async (req, res, next) => {
                 message: 'success',
                 username: user.username,
                 display_name: user.display_name,
+                profile_picture: user.profile_picture,
                 role: decoded.role,
                 access_token
             })
