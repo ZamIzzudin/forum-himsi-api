@@ -140,7 +140,7 @@ const users = (req, res, next) => {
                     message: 'failed',
                     info: 'expired token'
                 });
-            } else if (decoded.role.toLowerCase() !== 'common' || decoded.role.toLowerCase() !== 'verified') {
+            } else if (decoded.role.toLowerCase() !== 'common' && decoded.role.toLowerCase() !== 'verified') {
                 return res.status(401).json({
                     status: 401,
                     message: 'failed',

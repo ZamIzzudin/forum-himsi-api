@@ -75,6 +75,7 @@ const get_discussion_topic = async (req, res) => {
                 }
 
                 return {
+                    id: discussion.id,
                     body: discussion.body,
                     topic: discussion.topic,
                     updated_at: discussion.updated_at,
@@ -89,104 +90,6 @@ const get_discussion_topic = async (req, res) => {
                 status: 200,
                 message: 'success',
                 data: discussions
-            })
-        }
-    } catch (err) {
-        return res.status(500).json({
-            status: 500,
-            message: 'failed',
-            info: 'server error'
-        })
-    }
-}
-
-const get_discussion_layer = (req, res, next) => {
-    const { id_layer } = req.params
-
-    try {
-        const result = Discussion.find({ layer: id_layer })
-
-        if (!result) {
-            return res.status(400).json({
-                status: 400,
-                message: 'failed',
-                info: "can't find discussion"
-            })
-        } else {
-            const discussions = []
-
-            result.forEach(discussion => {
-                const user = User.findOne({ _id: discussion.created_by })
-                let is_hide = result.is_hide || false
-
-                if (user.is_hide) {
-                    is_hide = false
-                }
-
-                discussions.push({
-                    body: discussion.body,
-                    topic: discussion.topic,
-                    layer: discussion.layer,
-                    updated_at: discussion.updated_at,
-                    discussion: discussion.discussion,
-                    username: user.username,
-                    is_hide,
-                    display_name: user.display_name,
-                    profile_picture: user.profile_picture
-                })
-            })
-
-            return res.status(200).json({
-                status: 200,
-                message: 'success',
-                data: discussions
-            })
-        }
-    } catch (err) {
-        return res.status(500).json({
-            status: 500,
-            message: 'failed',
-            info: 'server error'
-        })
-    }
-}
-
-const get_discussion_detail = (req, res, next) => {
-    const { id_layer } = req.params
-
-    try {
-        const discussion = Discussion.findOne({ _id: id_layer })
-
-        if (!discussion) {
-            return res.status(400).json({
-                status: 400,
-                message: 'failed',
-                info: "can't find discussion"
-            })
-        } else {
-            const user = User.findOne({ _id: discussion.created_by })
-            let is_hide = discussion.is_hide || false
-
-            if (user.is_hide) {
-                is_hide = false
-            }
-
-            const payload = {
-                body: discussion.body,
-                topic: discussion.topic,
-                layer: discussion.layer,
-                updated_at: discussion.updated_at,
-                discussion: discussion.discussion,
-                username: user.username,
-                is_hide,
-                display_name: user.display_name,
-                profile_picture: user.profile_picture
-            }
-
-            return res.status(200).json({
-                status: 200,
-                message: 'success',
-                data: payload
             })
         }
     } catch (err) {
@@ -215,7 +118,7 @@ const user_edit_discussion = (req, res, next) => {
                 })
             }
 
-            const discussion = await Discussion.findOne(query)
+            const discussion = await Discussion.findOne({ _id: id_layer })
             if (!discussion) {
                 res.status(400).json({
                     status: 400,
@@ -264,7 +167,7 @@ const user_delete_discussion = (req, res, next) => {
                 })
             }
 
-            const discussion = await Discussion.findOne(query)
+            const discussion = await Discussion.findOne({ _id: id_layer })
             if (!discussion) {
                 res.status(400).json({
                     status: 400,
@@ -275,7 +178,6 @@ const user_delete_discussion = (req, res, next) => {
 
             if (decoded.id === discussion.created_by) {
                 await Discussion.deleteOne({ _id: id_layer })
-                await Discussion.deleteMany({ layer: id_layer })
 
                 res.status(200).json({
                     status: 200,
@@ -315,7 +217,7 @@ const sysadmin_edit_discussion = (req, res, next) => {
                 })
             }
 
-            const discussion = await Discussion.findOne(query)
+            const discussion = await Discussion.findOne({ _id: id_layer })
             if (!discussion) {
                 res.status(400).json({
                     status: 400,
@@ -348,7 +250,6 @@ const sysadmin_edit_discussion = (req, res, next) => {
     }
 }
 
-
 const sysadmin_delete_discussion = (req, res, next) => {
     const { id_layer } = req.params
     const { authorization: raw_token } = req.headers
@@ -365,7 +266,7 @@ const sysadmin_delete_discussion = (req, res, next) => {
                 })
             }
 
-            const discussion = await Discussion.findOne(query)
+            const discussion = await Discussion.findOne({ _id: id_layer })
             if (!discussion) {
                 res.status(400).json({
                     status: 400,
@@ -376,7 +277,6 @@ const sysadmin_delete_discussion = (req, res, next) => {
 
             if (decoded.role.toLowerCase() === 'sysadmin') {
                 await Discussion.deleteOne({ _id: id_layer })
-                await Discussion.deleteMany({ layer: id_layer })
 
                 res.status(200).json({
                     status: 200,
@@ -402,8 +302,6 @@ const sysadmin_delete_discussion = (req, res, next) => {
 const controller = {
     create_discussion,
     get_discussion_topic,
-    get_discussion_layer,
-    get_discussion_detail,
     user_edit_discussion,
     user_delete_discussion,
     sysadmin_edit_discussion,
