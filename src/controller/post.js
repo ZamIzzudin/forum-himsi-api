@@ -6,7 +6,7 @@ import cloudinary from '../libs/cloudinary.js'
 import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
-    const { category, body, link } = req.body
+    const { category, body } = req.body
     const { picture_attachments = [] } = req.files
     const { video_attachments = [] } = req.files
     const { authorization: raw_token } = req.headers
@@ -56,7 +56,6 @@ const create_post = async (req, res) => {
                 category,
                 category_text,
                 body,
-                link,
                 attachments: url_attachments,
                 created_by: decoded.id,
                 created_at: new Date().toISOString(),
@@ -153,7 +152,6 @@ const get_posts = async (req, res) => {
                                 category: post.category,
                                 head: post.head,
                                 body: post.body,
-                                link: post.link,
                                 attachments: post.attachments,
                                 likes: post.likes,
                                 discussion: post.discussion,
@@ -219,7 +217,6 @@ const get_detail_post = async (req, res) => {
                 body: post.body,
                 attachments: post.attachments,
                 likes: post.likes,
-                link: post.link,
                 discussion: post.discussion,
                 username: post_creator.username,
                 display_name: post_creator.display_name,
@@ -238,7 +235,7 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category = [], body, link } = req.body
+    const { category = [], body } = req.body
     const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
@@ -308,7 +305,6 @@ const edit_post = async (req, res) => {
 
                 const payload = {
                     category,
-                    link,
                     category_text,
                     body,
                     attachments: url_attachments,
@@ -445,42 +441,44 @@ const verified_takedown_post = async (req, res) => {
                     message: 'failed',
                     info: "can't find post"
                 })
-            }
-
-            if (decoded.id === post.created_by) {
-                await Post.deleteOne(query)
-                await Discussion.deleteMany({ topic: id_post })
-
-                post.attachments.forEach(async (attachment) => {
-                    await cloudinary.uploader.destroy(attachment.public_id)
-                })
-
-                category_parse.forEach(async (each) => {
-                    const query_category = { name: { $in: each } }
-                    const categories = await Category.findOne(query_category)
-
-                    if (!categories) {
-                        const payload_category = {
-                            name: each,
-                            posts: 0
-                        }
-                        await Category.create(payload_category)
-                    } else {
-                        const posts_amount = categories.posts - 1
-                        await Category.updateOne(query_category, { posts: posts_amount })
-                    }
-                })
-
-                res.status(200).json({
-                    status: 200,
-                    message: `Success Delete Post ${id_post}`
-                })
             } else {
-                res.status(403).json({
-                    status: 403,
-                    message: 'failed',
-                    info: "you dont have previlage to do this action"
-                })
+                if (decoded.id === post.created_by) {
+                    await Post.deleteOne(query)
+                    await Discussion.deleteMany({ topic: id_post })
+
+                    post.attachments.forEach(async (attachment) => {
+                        await cloudinary.uploader.destroy(attachment.public_id)
+                    })
+
+                    const category_parse = JSON.parse(post.category) || []
+
+                    category_parse.forEach(async (each) => {
+                        const query_category = { name: { $in: each } }
+                        const categories = await Category.findOne(query_category)
+
+                        if (!categories) {
+                            const payload_category = {
+                                name: each,
+                                posts: 0
+                            }
+                            await Category.create(payload_category)
+                        } else {
+                            const posts_amount = categories.posts - 1
+                            await Category.updateOne(query_category, { posts: posts_amount })
+                        }
+                    })
+
+                    res.status(200).json({
+                        status: 200,
+                        message: `Success Delete Post ${id_post}`
+                    })
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        message: 'failed',
+                        info: "you dont have previlage to do this action"
+                    })
+                }
             }
         })
     } catch (err) {
@@ -526,6 +524,8 @@ const sysadmin_takedown_post = async (req, res) => {
                 post.attachments.forEach(async (attachment) => {
                     await cloudinary.uploader.destroy(attachment.public_id)
                 })
+
+                const category_parse = JSON.parse(post.category) || []
 
                 category_parse.forEach(async (each) => {
                     const query_category = { name: { $in: each } }
