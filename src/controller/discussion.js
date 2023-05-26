@@ -6,7 +6,7 @@ import { verify_access_token } from '../libs/jwt.js'
 const create_discussion = (req, res, next) => {
     const { id_topic } = req.params
     const { authorization: raw_token } = req.headers
-    const { body, layer = [] } = req.body
+    const { body } = req.body
 
     const token = raw_token.split(' ')[1]
 
@@ -24,33 +24,18 @@ const create_discussion = (req, res, next) => {
                 created_by: decoded.id,
                 topic: id_topic,
                 body,
-                layer,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             }
 
             const discussion = await Discussion.create(payload)
 
-            // layer --> [id discussion, ...] --> flagginf position discussion
-            if (layer.length > 0) {
-                const last_index = layer.length - 1
-                const parent_layer = await Discussion.findOne({ _id: layer[last_index] })
+            const post = await Post.findOne({ _id: id_topic })
 
-                const exist_layer_discussion = parent_layer.discussion
-                const layers = parent_layer.layer
+            const exist_discussion = post.discussion
+            exist_discussion.push(discussion._id)
 
-                layers.push(discussion._id)
-                exist_layer_discussion.push(discussion._id)
-
-                await Discussion.updateOne({ _id: layer }, { discussion: exist_layer_discussion, layer: layers })
-            } else {
-                const post = await Post.findOne({ _id: id_topic })
-
-                const exist_discussion = post.discussion
-                exist_discussion.push(discussion._id)
-
-                await Post.updateOne({ _id: id_topic }, { discussion: exist_discussion })
-            }
+            await Post.updateOne({ _id: id_topic }, { discussion: exist_discussion })
 
             return res.status(203).json({
                 status: 203,
@@ -66,7 +51,7 @@ const create_discussion = (req, res, next) => {
     }
 }
 
-const get_discussion_topic = async (req, res, next) => {
+const get_discussion_topic = async (req, res) => {
     const { id_topic } = req.params
 
     try {
@@ -79,28 +64,26 @@ const get_discussion_topic = async (req, res, next) => {
                 info: "can't find discussion"
             })
         } else {
-            const discussions = []
+            let discussions = []
+            discussions = await Promise.all(result.map(async discussion => {
+                const user = await User.findOne({ _id: discussion.created_by })
 
-            result.forEach(discussion => {
-                const user = User.findOne({ _id: discussion.created_by })
                 let is_hide = result.is_hide || false
 
                 if (user.is_hide) {
                     is_hide = false
                 }
 
-                discussions.push({
+                return {
                     body: discussion.body,
                     topic: discussion.topic,
-                    layer: discussion.layer,
                     updated_at: discussion.updated_at,
-                    discussion: discussion.discussion,
                     username: user.username,
                     is_hide,
                     display_name: user.display_name,
                     profile_picture: user.profile_picture
-                })
-            })
+                }
+            }))
 
             return res.status(200).json({
                 status: 200,
