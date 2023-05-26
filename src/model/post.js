@@ -6,6 +6,7 @@ const post_schema = new mongoose.Schema({
     category_text: String,
     body: String,
     attachments: Array,
+    link: String,
     likes: {
         type: Array,
         default: []

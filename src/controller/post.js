@@ -6,7 +6,7 @@ import cloudinary from '../libs/cloudinary.js'
 import { verify_access_token } from '../libs/jwt.js'
 
 const create_post = async (req, res) => {
-    const { category, body } = req.body
+    const { category, body, link } = req.body
     const { picture_attachments = [] } = req.files
     const { video_attachments = [] } = req.files
     const { authorization: raw_token } = req.headers
@@ -56,6 +56,7 @@ const create_post = async (req, res) => {
                 category,
                 category_text,
                 body,
+                link,
                 attachments: url_attachments,
                 created_by: decoded.id,
                 created_at: new Date().toISOString(),
@@ -152,6 +153,7 @@ const get_posts = async (req, res) => {
                                 category: post.category,
                                 head: post.head,
                                 body: post.body,
+                                link: post.link,
                                 attachments: post.attachments,
                                 likes: post.likes,
                                 discussion: post.discussion,
@@ -217,6 +219,7 @@ const get_detail_post = async (req, res) => {
                 body: post.body,
                 attachments: post.attachments,
                 likes: post.likes,
+                link: post.link,
                 discussion: post.discussion,
                 username: post_creator.username,
                 display_name: post_creator.display_name,
@@ -235,7 +238,7 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category = [], body } = req.body
+    const { category = [], body, link } = req.body
     const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
@@ -305,6 +308,7 @@ const edit_post = async (req, res) => {
 
                 const payload = {
                     category,
+                    link,
                     category_text,
                     body,
                     attachments: url_attachments,
