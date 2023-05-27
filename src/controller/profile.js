@@ -102,12 +102,18 @@ const get_user = async (req, res) => {
 const update_profile = async (req, res) => {
     try {
         const { id } = req.params
-        const payload = req.body
+        const { username, display_name, description } = req.body
         const { authorization: raw_token } = req.headers
 
         const token = raw_token.split(' ')[1]
 
-        verify_refresh_token(token, async (error, decoded) => {
+        const payload = {
+            username,
+            display_name,
+            description
+        }
+
+        verify_access_token(token, async (error, decoded) => {
             if (error) {
                 return res.status(401).json({
                     status: 401,
@@ -117,7 +123,7 @@ const update_profile = async (req, res) => {
             } else {
                 if (decoded.id === id) {
                     // update user data
-                    const user = await User.updateOne({ _id: id }, { $set: payload })
+                    const user = await User.updateOne({ _id: id }, payload)
 
                     // when data user is not found
                     if (!user.acknowledged) {
