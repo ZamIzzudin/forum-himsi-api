@@ -181,12 +181,7 @@ const user_delete_discussion = (req, res, next) => {
 
                     const update_discussion = post.discussion.filter(each => each != id_layer)
 
-                    const payload = {
-                        discussion: update_discussion
-                    }
-
-                    await Post.updateOne({ _id: discussion.topic }, payload)
-                    console.log({ _id: discussion.topic })
+                    await Post.updateOne({ _id: discussion.topic }, { discussion: update_discussion })
 
                     res.status(200).json({
                         status: 200,
@@ -294,7 +289,7 @@ const sysadmin_delete_discussion = (req, res, next) => {
                         discussion: update_discussion
                     }
 
-                    await Post.updateOne({ _id: discussion.topic }, payload)
+                    await Post.updateOne({ _id: discussion.topic }, { discussion: update_discussion })
 
                     res.status(200).json({
                         status: 200,
