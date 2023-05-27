@@ -7,7 +7,7 @@ const config = {
     API_KEY: '168854982559427',
     API_SECRET: 'w8eihYXtpIH1aLfWRN3NF4gv-t8',
     PORT: 8000,
-    MONGO_URL: 'mongodb+srv://god:syahid11@creature.ydzmaly.mongodb.net/?retryWrites=true&w=majority',
+    MONGO_URL: 'mongodb+srv://god:syahid11@creature.ydzmaly.mongodb.net/?retryWrites=true&w=majority&ssl=true',
     MAX_AGE_ACCESS_TOKEN: '1d',
     MAX_AGE_REFRESH_TOKEN: '1d',
     REFRESH_TOKEN: 'creation',
