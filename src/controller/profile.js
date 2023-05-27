@@ -1,4 +1,5 @@
 import User from "../model/user.js"
+import Post from "../model/post.js"
 import cloudinary from '../libs/cloudinary.js';
 import { verify_access_token } from '../libs/jwt.js'
 
@@ -61,6 +62,7 @@ const get_user = async (req, res) => {
 
         //get all user data
         const user = await User.findOne({ is_banned: false, _id: id }) || []
+        const posts = await Post.find({ created_by: id })
 
         //when data user is not found
         if (!user || user.role === 'SysAdmin') {
@@ -81,6 +83,7 @@ const get_user = async (req, res) => {
                     description: user.description,
                     follower: user.follower,
                     following: user.following,
+                    posts,
                     subscription: user.subscription,
                     created_at: user.created_at
                 }
