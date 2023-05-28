@@ -245,12 +245,12 @@ const edit_post = async (req, res) => {
     const picture_exist_attachments = req.body.picture_attachments || []
 
     if (req.files) {
-        if (req.files['video_attachments[]']) {
-            video_attachments = req.files['video_attachments[]']
+        if (req.files['video_attachments']) {
+            video_attachments = req.files['video_attachments']
         }
 
-        if (req.files['picture_attachments[]']) {
-            picture_attachments = req.files['picture_attachments[]']
+        if (req.files['picture_attachments']) {
+            picture_attachments = req.files['picture_attachments']
         }
     }
 
