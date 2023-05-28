@@ -35,6 +35,8 @@ const create_post = async (req, res) => {
                     }))
                 }
 
+                console.log(picture_attachments)
+
                 if (picture_attachments?.length > 0) {
                     await Promise.all(picture_attachments.map(async (attachment) => {
                         const upload_picture = await cloudinary.uploader.upload(attachment.path)
@@ -235,22 +237,22 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category = [], body } = req.body
+    const { category, body } = req.body
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
 
     let video_attachments = []
     let picture_attachments = []
-    const video_exist_attachments = req.body.video_attachments || []
-    const picture_exist_attachments = req.body.picture_attachments || []
+    const video_exist_attachments = req.body['video_attachments[]']
+    const picture_exist_attachments = req.body['picture_attachments[]']
 
     if (req.files) {
-        if (req.files['video_attachments']) {
-            video_attachments = req.files['video_attachments']
+        if (req.files.video_attachments) {
+            video_attachments = req.files.video_attachments
         }
 
         if (req.files['picture_attachments']) {
-            picture_attachments = req.files['picture_attachments']
+            picture_attachments = req.files.picture_attachments
         }
     }
 
