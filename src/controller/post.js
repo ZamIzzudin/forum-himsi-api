@@ -235,10 +235,13 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category = [], body, video_exist_attachments = [], picture_exist_attachments = [] } = req.body
+    const { category = [], body } = req.body
     const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
+
+    const video_exist_attachments = req.body.video_attachments || []
+    const picture_exist_attachments = req.body.picture_attachments || []
 
     const token = raw_token.split(' ')[1]
 
@@ -352,6 +355,8 @@ const edit_post = async (req, res) => {
                             if (categories.posts != 0) {
                                 const posts_amount = categories.posts - 1
                                 await Category.updateOne(query_category, { posts: posts_amount })
+                            } else {
+
                             }
                         })
 
