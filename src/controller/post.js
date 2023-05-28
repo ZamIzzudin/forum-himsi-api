@@ -236,12 +236,21 @@ const get_detail_post = async (req, res) => {
 
 const edit_post = async (req, res) => {
     const { category = [], body } = req.body
-    const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
 
+    let video_attachments = []
+    let picture_attachments = []
     const video_exist_attachments = req.body.video_attachments || []
     const picture_exist_attachments = req.body.picture_attachments || []
+
+    if (req.files?.video_attachments) {
+        video_attachments = req.files.video_attachments
+    }
+
+    if (req.files?.picture_attachments) {
+        picture_attachments = req.files.picture_attachments
+    }
 
     const token = raw_token.split(' ')[1]
 
@@ -331,8 +340,9 @@ const edit_post = async (req, res) => {
                         })
 
                         const deleted_category = category_exits.filter(category => !category_parse.includes(category))
+                        const duplicate_category = category_exits.filter(category => category_parse.includes(category))
 
-                        category_parse.forEach(async (each) => {
+                        duplicate_category.forEach(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
