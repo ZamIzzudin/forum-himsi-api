@@ -78,6 +78,7 @@ const get_user = async (req, res) => {
                 data: {
                     id: user._id,
                     username: user.username,
+                    profile_picture: user.profile_picture,
                     display_name: user.display_name,
                     email: user.email,
                     description: user.description,
