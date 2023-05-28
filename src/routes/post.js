@@ -40,7 +40,7 @@ post.delete('/post/:id_post', verified, controller.verified_takedown_post)
 post.delete('/post/admin/:id_post', sysadmin, controller.sysadmin_takedown_post)
 
 // Put
-post.put('/post/:id_post', verified, upload.fields([{ name: 'video_attachments', maxCount: 4 }, { name: 'picture_attachments', maxCount: 4 }]), controller.edit_post)
+post.put('/post/:id_post', verified, upload.fields([{ name: 'video_attachments[]', maxCount: 4 }, { name: 'picture_attachments[]', maxCount: 4 }]), controller.edit_post)
 post.put('/post/like/:id_post', controller.like_post)
 
 export default post
