@@ -235,7 +235,7 @@ const get_detail_post = async (req, res) => {
 }
 
 const edit_post = async (req, res) => {
-    const { category = [], body } = req.body
+    const { category = [], body, video_exist_attachments = [], picture_exist_attachments = [] } = req.body
     const { video_attachments = [], picture_attachments = [] } = req.files
     const { id_post } = req.params
     const { authorization: raw_token } = req.headers
@@ -264,6 +264,18 @@ const edit_post = async (req, res) => {
                     let url_attachments = []
 
                     if (decoded.id === post.created_by) {
+                        if (video_exist_attachments?.length > 0) {
+                            video_exist_attachments.forEach(async (attachment) => {
+                                url_attachments.push(attachment)
+                            })
+                        }
+
+                        if (picture_exist_attachments?.length > 0) {
+                            picture_exist_attachments.forEach(async (attachment) => {
+                                url_attachments.push(attachment)
+                            })
+                        }
+
                         if (picture_attachments?.length > 0) {
                             await Promise.all(picture_attachments.map(async (attachment) => {
                                 if (attachment.path) {
@@ -275,8 +287,6 @@ const edit_post = async (req, res) => {
                                         public_id: url_public,
                                         url: url_picture
                                     })
-                                } else {
-                                    url_attachments.push(attachment)
                                 }
                             }))
                         }
@@ -290,8 +300,6 @@ const edit_post = async (req, res) => {
                                             url: result.url
                                         })
                                     })
-                                } else {
-                                    url_attachments.push(attachment)
                                 }
                             }))
                         }
@@ -336,7 +344,7 @@ const edit_post = async (req, res) => {
 
                         res.status(200).json({
                             status: 200,
-                            message: `Success Update Post ${id_post}`
+                            message: `Success Update Post ${id_post}`,
                         })
                     } else {
                         res.status(403).json({
