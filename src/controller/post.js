@@ -261,7 +261,6 @@ const edit_post = async (req, res) => {
                         info: "can't find post"
                     })
                 } else {
-                    let maintained_attachment = []
                     let url_attachments = []
 
                     if (decoded.id === post.created_by) {
@@ -277,7 +276,7 @@ const edit_post = async (req, res) => {
                                         url: url_picture
                                     })
                                 } else {
-                                    maintained_attachment.push(attachment.public_id)
+                                    url_attachments.push(attachment)
                                     return attachment
                                 }
                             }))
@@ -293,7 +292,7 @@ const edit_post = async (req, res) => {
                                         })
                                     })
                                 } else {
-                                    maintained_attachment.push(attachment.public_id)
+                                    url_attachments.push(attachment)
                                     return attachment
                                 }
                             }))
@@ -311,14 +310,13 @@ const edit_post = async (req, res) => {
 
                         await Post.updateOne(query, payload)
 
-                        const deleted_attachment = post.attachments.filter((attachment) => {
-                            if (!maintained_attachment.includes(attachment)) {
-                                return attachment
-                            }
-                        }) || []
+                        const exist_attachment = post.attachments.map(attachment => attachment.public_id)
+                        const new_attachment = url_attachments.map(attachment => attachment.public_id)
+
+                        const deleted_attachment = exist_attachment.filter(attachment => !new_attachment.includes(attachment))
 
                         deleted_attachment.forEach(async (attachment) => {
-                            await cloudinary.uploader.destroy(attachment.public_id)
+                            await cloudinary.uploader.destroy(attachment)
                         })
 
                         category_parse.forEach(async (each) => {
