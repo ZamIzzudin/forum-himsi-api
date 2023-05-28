@@ -281,14 +281,14 @@ const edit_post = async (req, res) => {
 
                     if (decoded.id === post.created_by) {
                         if (video_exist_attachments?.length > 0) {
-                            video_exist_attachments.forEach(async (attachment) => {
-                                url_attachments.push(attachment)
+                            video_exist_attachments.forEach((attachment) => {
+                                url_attachments.push(JSON.parse(attachment))
                             })
                         }
 
                         if (picture_exist_attachments?.length > 0) {
-                            picture_exist_attachments.forEach(async (attachment) => {
-                                url_attachments.push(attachment)
+                            picture_exist_attachments.forEach((attachment) => {
+                                url_attachments.push(JSON.parse(attachment))
                             })
                         }
 
