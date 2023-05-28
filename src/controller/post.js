@@ -219,6 +219,7 @@ const get_detail_post = async (req, res) => {
                     username: post_creator.username,
                     display_name: post_creator.display_name,
                     profile_picture: post_creator.profile_picture,
+                    created_by: post.created_by,
                     is_hide,
                     updated_at: post.updated_at
                 }
