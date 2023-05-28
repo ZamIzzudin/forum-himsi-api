@@ -62,7 +62,7 @@ const get_user = async (req, res) => {
 
         //get all user data
         const user = await User.findOne({ is_banned: false, _id: id }) || []
-        const posts = await Post.find({ created_by: id })
+        const posts = await Post.find({ created_by: id }).sort({ created_at: -1 })
 
         //when data user is not found
         if (!user || user.role === 'SysAdmin') {

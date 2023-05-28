@@ -265,7 +265,7 @@ const edit_post = async (req, res) => {
 
                     if (decoded.id === post.created_by) {
                         if (picture_attachments?.length > 0) {
-                            await Promise.all(picture_attachments.map(async (attachment) => {
+                            await Promise.all(picture_attachments.forEach(async (attachment) => {
                                 if (attachment.path) {
                                     const upload_picture = await cloudinary.uploader.upload(attachment.path)
                                     const url_picture = upload_picture.secure_url
@@ -277,13 +277,12 @@ const edit_post = async (req, res) => {
                                     })
                                 } else {
                                     url_attachments.push(attachment)
-                                    return attachment
                                 }
                             }))
                         }
 
                         if (video_attachments?.length > 0) {
-                            await Promise.all(video_attachments.map(async (attachment) => {
+                            await Promise.all(video_attachments.forEach(async (attachment) => {
                                 if (attachment.path) {
                                     await cloudinary.uploader.upload(attachment.path, { resource_type: 'video', chunk_size: 6000000, }).then(result => {
                                         url_attachments.push({
@@ -293,7 +292,6 @@ const edit_post = async (req, res) => {
                                     })
                                 } else {
                                     url_attachments.push(attachment)
-                                    return attachment
                                 }
                             }))
                         }
