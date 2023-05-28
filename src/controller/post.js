@@ -346,7 +346,7 @@ const edit_post = async (req, res) => {
                         const deleted_category = category_exits.filter(category => !category_parse.includes(category))
                         const duplicate_category = category_exits.filter(category => category_parse.includes(category))
 
-                        duplicate_category.forEach(async (each) => {
+                        category_parse.forEach(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
@@ -362,15 +362,13 @@ const edit_post = async (req, res) => {
                             }
                         })
 
-                        deleted_category.forEach(async (each) => {
+                        category_exits.forEach(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
                             if (categories.posts != 0) {
                                 const posts_amount = categories.posts - 1
                                 await Category.updateOne(query_category, { posts: posts_amount })
-                            } else {
-
                             }
                         })
 
