@@ -487,16 +487,8 @@ const verified_takedown_post = async (req, res) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
-                            if (!categories) {
-                                const payload_category = {
-                                    name: each,
-                                    posts: 0
-                                }
-                                await Category.create(payload_category)
-                            } else {
-                                const posts_amount = categories.posts - 1
-                                await Category.updateOne(query_category, { posts: posts_amount })
-                            }
+                            const posts_amount = categories.posts - 1
+                            await Category.updateOne(query_category, { posts: posts_amount })
                         })
 
                         res.status(200).json({
@@ -561,16 +553,8 @@ const sysadmin_takedown_post = async (req, res) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
-                            if (!categories) {
-                                const payload_category = {
-                                    name: each,
-                                    posts: 0
-                                }
-                                await Category.create(payload_category)
-                            } else {
-                                const posts_amount = categories.posts - 1
-                                await Category.updateOne(query_category, { posts: posts_amount })
-                            }
+                            const posts_amount = categories.posts - 1
+                            await Category.updateOne(query_category, { posts: posts_amount })
                         })
 
                         res.status(200).json({
