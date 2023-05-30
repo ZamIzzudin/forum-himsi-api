@@ -343,9 +343,6 @@ const edit_post = async (req, res) => {
                             await cloudinary.uploader.destroy(attachment)
                         })
 
-                        const deleted_category = category_exits.filter(category => !category_parse.includes(category))
-                        const duplicate_category = category_exits.filter(category => category_parse.includes(category))
-
                         category_parse.forEach(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
