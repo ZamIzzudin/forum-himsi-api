@@ -11,8 +11,15 @@ const get_user_list = async (req, res) => {
     }
 
     if (username) {
+        const regexPattern = new RegExp(username, 'i');
         query = {
             ...query,
+            'username': {
+                $regex: regexPattern
+            },
+            'display_name': {
+                $regex: regexPattern
+            },
             'is_verified': {
                 $in: [true]
             }
