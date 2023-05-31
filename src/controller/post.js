@@ -343,7 +343,7 @@ const edit_post = async (req, res) => {
                             await cloudinary.uploader.destroy(attachment)
                         })
 
-                        category_exits.forEach(async (each) => {
+                        await Promise.all(category_exits.map(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
@@ -351,9 +351,9 @@ const edit_post = async (req, res) => {
                                 const posts_amount = categories.posts - 1
                                 await Category.updateOne(query_category, { posts: posts_amount })
                             }
-                        })
+                        }))
 
-                        category_parse.forEach(async (each) => {
+                        await Promise.all(category_parse.map(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
@@ -367,7 +367,7 @@ const edit_post = async (req, res) => {
                                 const posts_amount = categories.posts + 1
                                 await Category.updateOne(query_category, { posts: posts_amount })
                             }
-                        })
+                        }))
 
                         res.status(200).json({
                             status: 200,
