@@ -487,8 +487,10 @@ const verified_takedown_post = async (req, res) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
-                            const posts_amount = categories.posts - 1
-                            await Category.updateOne(query_category, { posts: posts_amount })
+                            if (categories.posts != 0) {
+                                const posts_amount = categories.posts - 1
+                                await Category.updateOne(query_category, { posts: posts_amount })
+                            }
                         })
 
                         res.status(200).json({
@@ -553,8 +555,10 @@ const sysadmin_takedown_post = async (req, res) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
 
-                            const posts_amount = categories.posts - 1
-                            await Category.updateOne(query_category, { posts: posts_amount })
+                            if (categories.posts != 0) {
+                                const posts_amount = categories.posts - 1
+                                await Category.updateOne(query_category, { posts: posts_amount })
+                            }
                         })
 
                         res.status(200).json({
