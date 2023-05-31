@@ -83,7 +83,7 @@ const create_post = async (req, res) => {
                             }
                             await Category.create(payload_category)
                         } else {
-                            const posts_amount = ++categories.posts
+                            const posts_amount = categories.posts + 1
                             await Category.updateOne(query_category, { posts: posts_amount })
                         }
                     })
@@ -343,6 +343,16 @@ const edit_post = async (req, res) => {
                             await cloudinary.uploader.destroy(attachment)
                         })
 
+                        category_exits.forEach(async (each) => {
+                            const query_category = { name: { $in: each } }
+                            const categories = await Category.findOne(query_category)
+
+                            if (categories.posts != 0) {
+                                const posts_amount = categories.posts - 1
+                                await Category.updateOne(query_category, { posts: posts_amount })
+                            }
+                        })
+
                         category_parse.forEach(async (each) => {
                             const query_category = { name: { $in: each } }
                             const categories = await Category.findOne(query_category)
@@ -354,17 +364,7 @@ const edit_post = async (req, res) => {
                                 }
                                 await Category.create(payload_category)
                             } else {
-                                const posts_amount = ++categories.posts
-                                await Category.updateOne(query_category, { posts: posts_amount })
-                            }
-                        })
-
-                        category_exits.forEach(async (each) => {
-                            const query_category = { name: { $in: each } }
-                            const categories = await Category.findOne(query_category)
-
-                            if (categories.posts != 0) {
-                                const posts_amount = categories.posts - 1
+                                const posts_amount = categories.posts + 1
                                 await Category.updateOne(query_category, { posts: posts_amount })
                             }
                         })

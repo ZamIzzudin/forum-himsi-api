@@ -79,6 +79,7 @@ const get_discussion_topic = async (req, res) => {
                     body: discussion.body,
                     topic: discussion.topic,
                     updated_at: discussion.updated_at,
+                    created_by: discussion.created_by,
                     username: user.username,
                     is_hide,
                     display_name: user.display_name,
