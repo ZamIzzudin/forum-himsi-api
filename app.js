@@ -30,7 +30,7 @@ app.use('/public', express.static(path.join(__dirname, '/public')))
 //enable cors 
 app.use(cors({
     credentials: true,
-    origin: ['https://forum-himsi-api.vercel.app', 'http://localhost:3000', 'https://forum-himsi.netlify.app', 'https://forum-uin.vercel.app']
+    origin: ['http://www.si7a20202.com','https://www.si7a20202.com','https://forum-himsi-api.vercel.app', 'http://localhost:3000', 'https://forum-himsi.netlify.app', 'https://forum-uin.vercel.app']
 }))
 
 //allow to access cookie
